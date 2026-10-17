@@ -1,0 +1,12 @@
+bin/
+obj/
+node_modules/
+web/dist/
+.vs/
+.vscode/
+*.user
+.env
+.env.*
+!.env.example
+appsettings.Production.json
+*.log

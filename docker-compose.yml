@@ -1,0 +1,63 @@
+# 部署用。本機開發不需要 Docker，直接 dotnet run + npm run dev（見 README）。
+# 對外只綁 127.0.0.1，公開存取一律靠 Cloudflare Tunnel（見 ../NEW_PROJECT_PLAYBOOK.md）。
+services:
+  db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: ${SA_PASSWORD}
+      MSSQL_MEMORY_LIMIT_MB: 2048
+    volumes:
+      - mssql-data:/var/opt/mssql
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P \"$$MSSQL_SA_PASSWORD\" -Q 'SELECT 1' || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  idp:
+    build:
+      context: .
+      dockerfile: src/Rag.Idp/Dockerfile
+    depends_on:
+      db: { condition: service_healthy }
+    environment:
+      ConnectionStrings__Default: Server=db;Database=RagIdp;User Id=sa;Password=${SA_PASSWORD};TrustServerCertificate=True
+      Idp__Issuer: ${IDP_PUBLIC_URL}
+    ports:
+      - "127.0.0.1:12131:8080"   # = ${IDP_PUBLIC_URL}（Cloudflare Public Hostname）
+
+  bff:
+    build:
+      context: .
+      dockerfile: src/Rag.Bff/Dockerfile
+    depends_on:
+      db: { condition: service_healthy }
+      idp: { condition: service_started }
+    extra_hosts: ["host.docker.internal:host-gateway"]
+    environment:
+      ConnectionStrings__Default: Server=db;Database=RagApp;User Id=sa;Password=${SA_PASSWORD};TrustServerCertificate=True
+      Oidc__Authority: ${IDP_PUBLIC_URL}
+      Oidc__ClientId: rag-bff
+      Oidc__ClientSecret: ${BFF_CLIENT_SECRET}
+      Ollama__BaseUrl: http://host.docker.internal:11434
+      Ollama__EmbeddingModel: bge-m3
+      Ollama__ChatModel: ${CHAT_MODEL}
+    ports:
+      - "127.0.0.1:12130:8080"   # = ${APP_PUBLIC_URL}
+
+  ingest:
+    build:
+      context: .
+      dockerfile: src/Rag.Ingest/Dockerfile
+    depends_on:
+      db: { condition: service_healthy }
+    extra_hosts: ["host.docker.internal:host-gateway"]
+    environment:
+      ConnectionStrings__Default: Server=db;Database=RagApp;User Id=sa;Password=${SA_PASSWORD};TrustServerCertificate=True
+      Ollama__BaseUrl: http://host.docker.internal:11434
+      Ollama__EmbeddingModel: bge-m3
+
+volumes:
+  mssql-data:
