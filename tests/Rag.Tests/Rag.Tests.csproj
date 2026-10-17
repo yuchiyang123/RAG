@@ -19,7 +19,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Rag.Data\Rag.Data.csproj" />
+    <ProjectReference Include="..\..\src\Rag.Domain\Rag.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Rag.Application\Rag.Application.csproj" />
+    <ProjectReference Include="..\..\src\Rag.Infrastructure\Rag.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

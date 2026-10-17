@@ -9,10 +9,14 @@ RUN npm run build
 # 2) 建置 BFF
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /src
-COPY src/Rag.Data/*.csproj src/Rag.Data/
+COPY src/Rag.Domain/*.csproj src/Rag.Domain/
+COPY src/Rag.Application/*.csproj src/Rag.Application/
+COPY src/Rag.Infrastructure/*.csproj src/Rag.Infrastructure/
 COPY src/Rag.Bff/*.csproj src/Rag.Bff/
 RUN dotnet restore src/Rag.Bff
-COPY src/Rag.Data src/Rag.Data
+COPY src/Rag.Domain src/Rag.Domain
+COPY src/Rag.Application src/Rag.Application
+COPY src/Rag.Infrastructure src/Rag.Infrastructure
 COPY src/Rag.Bff src/Rag.Bff
 RUN dotnet publish src/Rag.Bff -c Release -o /out --no-restore
 

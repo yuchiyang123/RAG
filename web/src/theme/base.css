@@ -1,0 +1,32 @@
+/* 全域基礎樣式：只依賴 tokens.ts 的 applyTheme() 寫入的 CSS 變數。 */
+*,
+*::before,
+*::after { box-sizing: border-box; }
+
+html, body, #app { height: 100%; }
+
+body {
+  margin: 0;
+  background: var(--c-bg);
+  color: var(--c-text);
+  font-family: var(--font-sans);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* 股價、漲跌幅、成交量等數字：等寬數字才不會跳動、欄位才對得齊 */
+.num { font-variant-numeric: tabular-nums; font-family: var(--font-mono); }
+
+/* 漲跌語意色（台股：紅漲綠跌） */
+.is-up   { color: var(--c-up); }
+.is-down { color: var(--c-down); }
+.is-flat { color: var(--c-text-muted); }
+
+a { color: var(--c-accent); }
+a:hover { color: var(--c-accent-hover); }
+
+:focus-visible { outline: 2px solid var(--c-accent); outline-offset: 2px; }
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}

@@ -2,17 +2,20 @@
 
 學習用專案。環境已備好，**業務程式碼全部留白**，由你自己寫。
 
-## 結構
+## 結構（後端採 Clean Architecture，依賴只能向內）
 
 ```
-src/Rag.Idp      OIDC Provider（OpenIddict）            http://localhost:5100
-src/Rag.Bff      BFF + GraphQL（Hot Chocolate）+ RAG     http://localhost:5200
-src/Rag.Data     EF Core 實體 / DbContext（兩邊共用）
-src/Rag.Ingest   背景工作：抓行情、切 chunk、做 embedding
-tests/Rag.Tests  xUnit
-web/             Vue3 + TS + Vite                       http://localhost:5173（瀏覽器只連這個）
+src/Rag.Domain          實體、值物件、領域規則。不依賴任何東西
+src/Rag.Application     Use Case + 介面（ports，例如 IEmbeddingClient）。只依賴 Domain
+src/Rag.Infrastructure  EF Core、Ollama / TWSE 的實作（adapters）。依賴 Application
+src/Rag.Bff             Presentation：OIDC client、GraphQL、host SPA。依賴 Application + Infrastructure（只在組合根接線）
+src/Rag.Ingest          Presentation：背景工作 host。同上
+src/Rag.Idp             OIDC Provider（OpenIddict）。獨立部署、獨立資料庫（RagIdp），不走 Clean Architecture 分層
+tests/Rag.Tests         xUnit；ArchitectureTests 守住依賴方向
+web/                    Vue3 + TS + Vite + Naive UI（theme/ 已備好，其餘架構自己寫）
 ```
 
+埠：Idp `5100`、Bff `5200`、Vite `5173`。
 瀏覽器只會連 5173；Vite 把 `/bff`、`/graphql`、`/signin-oidc` 轉給 BFF（同源，行為與正式環境一致）。
 
 ## 本機開發（不需要 Docker）
